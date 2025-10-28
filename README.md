@@ -1,6 +1,6 @@
-# Chat App (Express + Socket.IO)
+# Chat App (Express + Node + MongoDB)
 
-Minimal example chat application using Node.js, Express and Socket.IO. Includes Dockerfile and example Kubernetes manifests.
+Minimal example chat application using Node.js, Express and Mongodb. Includes Dockerfile and example Kubernetes manifests.
 
 Getting started (local):
 
