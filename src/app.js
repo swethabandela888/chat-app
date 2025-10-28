@@ -7,15 +7,13 @@ require('dotenv').config();
 
 const app = express();
 app.use(cors());
-app.use(express.json()); // parse JSON first
+app.use(express.json()); 
 
-// Mount API routes BEFORE static files
 app.use('/api', messageRoutes);
 
 // Serve frontend
 app.use(express.static(path.join(__dirname, '../public')));
 
-// Fallback for SPA (optional)
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
 });
