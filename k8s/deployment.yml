@@ -1,0 +1,28 @@
+apiVersion: 'apps/v1'
+kind: Deployment
+metadata:
+  name: my-chat-app
+  labels:
+    app: chat-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: chat-app
+  template:
+    metadata:
+      name: chat-app-container
+      labels:
+        app: chat-app
+    spec:
+      containers:
+        - name: chat-app
+          image: docker.io/bandelaswetha/my-chat-app:latest
+          ports: 
+            - containerPort: 3000
+          env:
+            - name: MONGODB_URI
+              value: "mongodb://chat-db-service:27017/chatapp"
+          
+      
+

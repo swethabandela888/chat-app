@@ -1,0 +1,30 @@
+apiVersion: 'apps/v1'
+kind: Deployment
+metadata:
+  name: chat-mongo-db
+  labels:
+    app: mongo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo
+  template:
+    metadata:
+      name: chat-db-container
+      labels:
+        app: mongo
+    spec:
+      containers:
+        - name: mongo-db
+          image: mongo:latest
+          ports: 
+            - containerPort: 27017
+          volumeMounts:
+            - name: mongo-data
+              mountPath: /data/db
+      volumes:
+        - name: mongo-data
+          hostPath:
+            path: /data/mongo-data
+            type: DirectoryOrCreate

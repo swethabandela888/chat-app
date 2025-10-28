@@ -1,0 +1,99 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Chat App - Room</title>
+  <style>
+    body { font-family: Arial; margin: 0; padding: 1rem; }
+    #messages { list-style: none; padding: 0; max-height: 60vh; overflow:auto; border: 1px solid #ccc; margin-bottom: 1rem; }
+    #messages li { padding: 0.2rem 0; }
+    #form { display:flex; gap:8px; }
+    #input { flex:1; }
+  </style>
+</head>
+<body>
+  <h1>Chat with <span id="chatWith"></span></h1>
+  <ul id="messages"></ul>
+  <form id="form">
+    <input id="input" autocomplete="off" placeholder="Type a message" />
+    <button>Send</button>
+  </form>
+
+<script>
+const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+const otherUser = JSON.parse(localStorage.getItem('currentChatUser'));
+
+if (!currentUser || !otherUser) window.location.href = '/index.html';
+
+document.getElementById('chatWith').textContent = otherUser.user_name;
+
+let chatId = localStorage.getItem(`chat_${currentUser.user_id}_${otherUser.user_id}`);
+
+async function initChat() {
+  if (!chatId) {
+    // Request chat_id from backend
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ participants: [currentUser.user_id, otherUser.user_id] })
+    });
+    const data = await res.json();
+    chatId = data.chat_id || data.response; // depends on backend response
+    localStorage.setItem(`chat_${currentUser.user_id}_${otherUser.user_id}`, chatId);
+  }
+  fetchMessages();
+}
+
+const form = document.getElementById('form');
+const input = document.getElementById('input');
+const messages = document.getElementById('messages');
+
+async function fetchMessages() {
+  if (!chatId) return;
+  try {
+    const res = await fetch(`/api/messages?chat_id=${chatId}`);
+    const data = await res.json();
+    updateMessages(data.reverse()); // oldest first
+  } catch (err) {
+    console.error('Error fetching messages:', err);
+  }
+}
+
+function updateMessages(msgList) {
+  messages.innerHTML = '';
+  msgList.forEach(msg => {
+    const li = document.createElement('li');
+    li.textContent = `${msg.user_name}: ${msg.content}`;
+    messages.appendChild(li);
+  });
+  messages.scrollTop = messages.scrollHeight;
+}
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!input.value) return;
+
+  try {
+    await fetch('/api/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        content: input.value,
+        user_name: currentUser.user_name,
+        user_id: currentUser.user_id
+      })
+    });
+    input.value = '';
+    fetchMessages();
+  } catch (err) {
+    console.error('Error sending message:', err);
+  }
+});
+
+// Poll for messages every 2 seconds
+setInterval(fetchMessages, 30000);
+initChat();
+</script>
+</body>
+</html>

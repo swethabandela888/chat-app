@@ -1,0 +1,78 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Chat App</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 0; padding: 1rem; }
+      #messages { list-style: none; padding: 0; max-height: 60vh; overflow:auto; }
+      #messages li { padding: 0.2rem 0; }
+      #form { display:flex; gap:8px; }
+      #input { flex:1; }
+    </style>
+  </head>
+  <body>
+    <h1>Chat App (Express.js)</h1>
+    <ul id="messages"></ul>
+    <form id="form">
+      <input id="input" autocomplete="off" placeholder="Type a message" /><button>Send</button>
+    </form>
+
+    <script>
+      const form = document.getElementById('form');
+      const input = document.getElementById('input');
+      const messages = document.getElementById('messages');
+      
+      // Function to fetch messages from the server
+      async function fetchMessages() {
+        try {
+          const response = await fetch('/api/messages');
+          const data = await response.json();
+          updateMessages(data);
+        } catch (error) {
+          console.error('Error fetching messages:', error);
+        }
+      }
+
+      // Function to update the messages list
+      function updateMessages(messageList) {
+        messages.innerHTML = '';
+        messageList.forEach(msg => {
+          const li = document.createElement('li');
+          // server returns objects with `content` and `timestamp`
+          li.textContent = (msg.content !== undefined) ? msg.content : String(msg);
+          messages.appendChild(li);
+        });
+        messages.scrollTop = messages.scrollHeight;
+      }
+
+      // Submit form handler
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!input.value) return;
+        
+        try {
+          await fetch('/api/messages', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            // server expects a body with { content }
+            body: JSON.stringify({ content: input.value, user_name: 'swetha', 'user_id': 1 }),
+          });
+          input.value = '';
+          fetchMessages(); // Refresh messages after sending
+        } catch (error) {
+          console.error('Error sending message:', error);
+        }
+      });
+
+      // Poll for new messages every 2 seconds
+      setInterval(fetchMessages, 10000);
+      
+      // Initial fetch
+      fetchMessages();
+    </script>
+  </body>
+</html>

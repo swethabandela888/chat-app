@@ -1,0 +1,62 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Chat App - Start Chat</title>
+  <style>
+    body { font-family: Arial; padding: 2rem; }
+    ul { list-style: none; padding: 0; }
+    li { padding: 0.5rem; cursor: pointer; border-bottom: 1px solid #ccc; }
+  </style>
+</head>
+<body>
+  <h1>Start Chat</h1>
+  <p>Logged in as <span id="currentUserName"></span></p>
+
+  <h3>Select user to chat with:</h3>
+  <ul id="usersList"></ul>
+
+<script>
+const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+if (!currentUser) window.location.href = '/index.html';
+
+document.getElementById('currentUserName').textContent = currentUser.user_name;
+
+async function fetchUsers() {
+  const res = await fetch('/api/user');
+  const data = await res.json();
+  const list = document.getElementById('usersList');
+  list.innerHTML = '';
+
+  data.response
+    .filter(u => u.user_id !== currentUser.user_id) // exclude self
+    .forEach(u => {
+      const li = document.createElement('li');
+      li.textContent = u.user_name;
+      li.onclick = async () => {
+        // Save the selected user as currentChatUser
+        localStorage.setItem('currentChatUser', JSON.stringify(u));
+
+        // Request chat ID from backend
+        const chatRes = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ participants: [currentUser.user_id, u.user_id] })
+        });
+        const chatData = await chatRes.json();
+        const chat_id = chatData.chat_id || chatData.response;
+
+        // Save chat ID in localStorage
+        localStorage.setItem(`chat_${currentUser.user_id}_${u.user_id}`, chat_id);
+
+        // Go to chatroom
+        window.location.href = '/chatroom.html';
+      };
+      list.appendChild(li);
+    });
+}
+
+fetchUsers();
+</script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Chat App - Login</title>
+  <style>
+    body { font-family: Arial; padding: 2rem; }
+    input, button { padding: 0.5rem; margin: 0.5rem 0; }
+  </style>
+</head>
+<body>
+  <h1>Chat App - Login</h1>
+  <input id="username" placeholder="Enter your name" />
+  <button id="loginBtn">Login / Create</button>
+
+<script>
+const loginBtn = document.getElementById('loginBtn');
+loginBtn.onclick = async () => {
+  const user_name = document.getElementById('username').value.trim();
+  if (!user_name) return alert('Enter a username');
+
+  try {
+    const res = await fetch('/api/user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_name })
+    });
+    const data = await res.json();
+    if (data.status) {
+      // Save current user
+      localStorage.setItem('currentUser', JSON.stringify(data.response));
+      window.location.href = '/chat.html';
+    } else {
+      alert('Failed to login/create user');
+    }
+  } catch (err) {
+    console.error(err);
+    alert('Error connecting to server');
+  }
+};
+</script>
+</body>
+</html>

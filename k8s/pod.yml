@@ -1,0 +1,12 @@
+apiVersion: 'apps/v1'
+kind: Pod
+metadata:
+  name: chat-app-pod
+  labels:
+    app: chat-app
+spec:
+  containers:
+    - name: chat-app
+      image: docker.io/bandelaswetha/my-chat-app:latest
+      ports:
+        - containerPort: 3000
